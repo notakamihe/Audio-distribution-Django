@@ -1,0 +1,43 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %} Register {% endblock head_title %}
+
+{% block content %}
+    <h1 class="mb-5">Register</h1>
+
+    {% for field in form %}
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <p style="width: fit-content;" class="alert alert-danger mb-4"> <strong class="alert-danger">{{ error }}</strong> </p>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    <form action="" method="POST" class="mt-5"> {% csrf_token %}
+        <div class="my-4">
+            <label for="email" class="col-1"><strong>Email</strong></label>
+            {{ form.email }}
+        </div>
+        <div class="my-4">
+            <label for="username" class="col-1"><strong>Username</strong></label>
+            {{ form.username }}
+        </div>
+        <div class="my-4">
+            <label for="dob" class="col-1"><strong>DOB</strong></label>
+            {{ form.dob }}
+        </div>
+
+        <div class="d-flex mb-5">
+            <div class="col-3">
+                <label for="password1" class="col-4"><strong>Password</strong></label>
+                {{ form.password1 }}
+            </div>
+            <div class="mx-5 col-4">
+                <label for="password2" class="col-5"><strong>Confirm password</strong></label>
+                {{ form.password2 }}
+            </div>
+        </div>
+
+        <input type="submit" value="Submit" class="btn btn-success">
+    </form>
+{% endblock content %}

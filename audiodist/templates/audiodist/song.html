@@ -1,0 +1,55 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %} Login {% endblock head_title %}
+
+{% block content %}
+    <style>
+        .cover {
+            width: 20rem;
+            height: 20rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+    
+    <div class="col-6 mx-auto mb-5 p-5 rounded">
+        <div class="d-flex mb-5 justify-content-center">
+            <div>
+                <div class="cover rounded" style="background-image: url('{{ song.cover_url }}');"></div>
+            </div>
+            <div class="d-flex" style="margin-left: 4rem; flex-direction: column;">
+                <div style="flex: 0.75;">
+                    <h3 class="mb-0">{{ artist.name }}</h3>
+                    <h5 class="mt-0 muted text-success">
+                        <a href="{% url 'artist' artist.account.username %}" class="text-decoration-none">{{ artist.account.username }}</a>
+                    </h5>
+                </div>
+                <p class="mb-0"><small><strong>{{ song.release_date_word_form }}</strong></small></p>
+                <p>{{ song.plays }} plays</p>
+            </div>
+        </div>
+        <div class="text-center">
+            <h1 class="mb-4">{{ song.title }}</h1>
+            <audio controls class="d-block" style="width: 100%;">
+                <source src="{{ song.song_url }}">
+            </audio>
+        </div>
+    </div>
+    <div>
+    <h4 class="mx-auto text-center" style="margin-bottom: 5rem;"><strong>Comments</strong></h4>
+    <div class="mx-auto">
+        <div class="col-7 mx-auto p-4 rounded" style="border: 1px #3b8855 solid;">
+            <p class="mb-4"><small>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque nisl eros, 
+                pulvinar facilisis justo mollis, auctor consequat urna. Morbi a bibendum metus. 
+                Donec scelerisque sollicitudin enim eu venenatis. Duis tincidunt laoreet ex,</small></p>
+            <div class="d-flex" style="align-items: flex-end;">
+                <div class="flex-fill">
+                    <h4 class="mb-0" style="color: black;">Artist Name</h4>
+                    <h5 class="muted">artistname</h5>
+                </div>
+                <p>January 4, 2021</p>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

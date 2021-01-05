@@ -1,0 +1,54 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %} Login {% endblock head_title %}
+
+{% block content %}
+    <style>
+        .cover {
+            width: 20rem;
+            height: 20rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .song-cover {
+            width: 3rem;
+            height: 3rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+
+    <div class="mx-auto text-center">
+        <h1 class="my-5">{{ collection.title }}</h1>
+        <p class="my-5 col-8 mx-auto" style="text-align: justify; text-align-last: center;">{{ collection.description }}</p>
+        <div class="col-9 mx-auto d-flex">
+            <div class="d-flex" style="text-align: left; margin-right: 2rem; flex-direction: column;">
+                <div class="cover rounded mb-4" style="background-image: url('{{ collection.cover_url }}');"></div>
+                <div class="mb-5">
+                    <p class="mb-0"><small><strong>{{ collection.kind }} &bullet; {{ collection.release_date_word_form }}</strong></small></p>
+                    <p><strong>{{ collection.length.minutes }} min {{ collection.length.seconds }} sec</strong></p>
+                </div>
+                <h3 class="mb-0">{{ artist.name }}</h3>
+                <h5 class="mt-0"><a class="text-decoration-none" href="{% url 'artist' artist.account.username %}">{{ artist.account.username }}</a></h5>
+
+            </div>
+            <div class="col-9">
+                <div class="row px-4">
+                    {% for i, song in songs %}
+                        <div class="d-flex col-lg-5 py-2 mx-3 my-1 rounded" style="align-items: center; border: 1px solid #3b8855;">
+                            <h3 class="mb-0" style="margin: 0 1rem 0 0;"><strong>{{ i }}.</strong></h3>
+                            <div style="margin-right: 1.5rem;">
+                                <div class="song-cover rounded" style="background-image: url('{{ song.cover_url }}');"></div>
+                            </div>
+                            
+                            <h6 class="mb-0" style="align-self: center; text-align: left;"><strong style="word-break: break-all;">{{ song.title }}</strong></h6>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

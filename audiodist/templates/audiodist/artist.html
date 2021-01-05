@@ -1,0 +1,275 @@
+{% extends 'audiodist/base.html' %}
+{% load static %}
+
+{% block head_title %} Profile for {{ artist.account.username }} {% endblock head_title %}
+
+{% block content %}
+    <style>
+        .pfp {
+            width: 20rem;
+            height: 20rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .cover {
+            width: 14rem;
+            height: 14rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2.5px solid #3b8855;
+            border-radius: 0.5rem;
+        }
+
+        .list-collection-cover {
+            width: 5rem;
+            height: 5rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 0.5rem;
+        }
+
+        .btn-collection {
+            z-index: 300;
+        }
+
+        audio::-webkit-media-controls-current-time-display {
+            color: black;
+        }
+
+        .change-time-display::-webkit-media-controls-current-time-display {
+            color: #3b8855;
+        }
+
+        .x {
+            filter: invert(100%); 
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+
+        .x img {
+            width: 1rem; 
+        }
+
+        #collection-popup {
+            position: fixed;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            transition: all 0.5s;
+            z-index: 300;
+        }
+
+        #collection-popup * {
+            z-index: 0;
+        }
+        
+        .tracklist {
+            height: 8rem;
+            overflow-y: scroll;
+            border: 2px solid #3b8855;
+        }
+
+        .tracklist > div {
+            margin-top: -1px;
+        }
+
+        .tracklist::-webkit-scrollbar {
+            width: 0.15rem;
+        }
+
+        .tracklist::-webkit-scrollbar-thumb {
+            background-color: black;
+            border-radius: 2rem;
+        }
+
+        .tracklist-cover {
+            width: 3rem;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: inherit;
+        }
+    </style>
+
+    <h1 class="mb-5">
+        <strong class="text-success">{{ artist.name }}</strong>
+        <span class="text-muted small mx-3">@{{ artist.account.username }}</span>
+    </h1>
+
+    <div style="width: 95%; margin: auto;" class="d-flex mb-5">
+        <div class="rounded-circle pfp" style="background-image: url('{{ artist.pfp_url }}');" ></div>
+        <div class="col-8 mx-5 rounded d-flex" style="border: 2px #3b8855 solid; padding: 2.5rem 2.5rem 0rem;">
+            <div class="d-flex" style="flex:0.6; flex-direction: column;">
+                <p style="flex:0.5;"><strong>Member since: </strong><span>{{ artist.date_joined_word_form }}</span></p>
+                <p class="big"><strong>Followers: &nbsp;</strong><strong class="text-success">3</strong></p>
+                <p class="big"><strong>Following: &nbsp;</strong><strong class="text-success">5</strong></p>
+            </div>
+            <div style="flex: 0.7;">
+                <p class="mb-4"><strong>Description:</strong></p>
+                <p>{{ artist.description }}</p>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="pt-5 mx-auto text-center">
+        <h2 class="mb-3"><strong>Songs ({{ artist.num_songs }})</strong></h2>
+        <a class="btn btn-success mb-5" href="{% url 'create-song' %}">Post a song</a>
+
+        <div>
+            {% for song in songs %}
+                <div style="border: 1px #3b8855 solid; text-align: left;" 
+                class="col-8 p-3 mx-auto d-flex my-4 text-decoration-none text-dark">
+                    <div style="flex: 0.55;">
+                        <div class="cover" style="background-image: url('{{ song.cover_url }}');"></div>
+                    </div>
+                    <div class="d-flex" style="flex: 0.95; flex-direction: column;">
+                        <a href="{% url 'song' artist.account.username song.slug %}" class="text-decoration-none text-dark" 
+                        style="flex:0.7;">
+                            <h2 class="mt-2 mb-0">{{ song.title }}</h2>
+                            <small><span class="text-success">{{ song.plays }} plays</span> &bullet; 
+                                {{ song.release_date_word_form }}</small>
+                        </a>
+                        <div style="flex:0.5;">
+                            <button class="btn btn-info btn-add-to-collection" data-songslug="{{ song.slug }}">Add to collection</button>
+                        </div>
+                        <audio controls class="d-block" style="width: 100%;">
+                            <source src="{{ song.song_url }}">
+                        </audio>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2 style="margin-top: 5rem;" class="mb-3"><strong>Collections ({{ artist.num_collections }})</strong></h2>
+        <a class="btn btn-success mb-5" href="{% url 'create-collection' %}">Create a collection</a>
+
+        <div>
+            {% for collection in collections %}
+                <div style="border: 1px #3b8855 solid; text-align: left;" 
+                class="col-8 p-3 mx-auto d-flex my-4">
+                    <div style="flex: 0.55;">
+                        <div class="cover" style="background-image: url('{{ collection.cover_url }}');"></div>
+                    </div>
+                    <a class="d-flex text-decoration-none text-dark" style="flex: 0.95; flex-direction: column;" 
+                    href="{% url 'collection' artist.account.username collection.slug %}">
+                        <div style="flex:0.9">
+                            <h2 class="mt-2 mb-0">{{ collection.title }}</h2>
+                            <small><span class="text-success">{{ collection.kind }} </span> &bullet; 
+                                {{ collection.release_date.year }} &bullet; {{ collection.num_tracks }} tracks 
+                                &bullet; {{ collection.length_rounded }} min</small>
+                        </div>
+                        {% if collection.num_tracks %}
+                            <div class="tracklist rounded p-2">
+                                {% for track in tracks %}
+                                    {% if track.collection == collection %}
+                                        <div style="height: 3rem; border: 1px solid #3b8855; align-items: center;" class="d-flex rounded">
+                                            <div style="height: 100%; border-radius: inherit; flex:0.15;">
+                                                <div class="tracklist-cover" style="background-image: url('{{ track.song.cover_url }}');"></div>
+                                            </div>
+                                            <p class="mb-0" style="flex:0.75; height: 1.6rem; overflow: hidden;">{{ track.song.title }}</p>
+                                            <small><strong><em>{{ track.song.plays }} plays</em></strong></small>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-7 text-left rounded mt-5 bg-success p-5 d-none" style="height: 35rem;" id="collection-popup">
+            <button style="background-color: transparent; border: none;" class="x" id="collection-popup-x">
+                <img src="{% static 'images/x.png' %}" alt="">
+            </button>
+            <h1 class="text-light" style="text-align: left;">Collections</h1>
+            <hr style="border: 1px solid #ffffffff; opacity: 1;" class="mb-5">
+            <div style="height: 80%; overflow-y: scroll;" class="px-3">
+                {% for collection in collections %}
+                    <button style="background-color: #00000033; border: none;" 
+                    class="d-flex p-2 rounded mb-3 col-12 collection-option" data-collectionslug="{{ collection.slug }}">
+                        <div style="flex:0.3;">
+                            <div class="list-collection-cover" style="background-image: url('{{ collection.cover_url }}');"></div>
+                        </div>
+                        <div style="text-align: left; flex:0.9" class="text-light">
+                            <h5 class="text-light" style="text-align: left; overflow-x: hidden; height: 1.7rem;"><strong>{{ collection.title }}</strong></h5>
+                            <p><strong>{{ collection.kind }}</strong> &bullet; {{ collection.release_date.year }} &bullet; {{ collection.num_tracks }} tracks</p>
+                        </div>
+                        <div style="align-self: flex-end; color: lime;">
+                            <small><strong>{{ collection.is_public|yesno:"Public,Private"  }}</strong></small>
+                        </div>
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(() => {
+            var songSlug;
+
+            audioTags = $('audio')
+            
+            setInterval(() => {
+                for (var tag of audioTags) {
+                    if (!tag.paused) {
+                        $(tag).addClass('change-time-display')
+                    } else {
+                        $(tag).removeClass('change-time-display')
+                    }
+                }
+            }, 100)
+
+            $('.btn-add-to-collection').on('click', function (e) {
+                $('#collection-popup').removeClass('d-none')
+                songSlug = $(this).data('songslug')
+            })
+
+            $('#collection-popup-x').on('click', () => {
+                $('#collection-popup').addClass('d-none')
+            })
+
+            $(document).on('click', function(event) {
+                if (event.target.className.includes('btn-add-to-collection'))
+                    return;
+
+                if ($("#collection-popup").css('display') != 'none') {
+                    if (!($(event.target).parents('#collection-popup').length > 0) && !(event.target.id === 'collection-popup')) {
+                        console.log('Yay')
+                        $('#collection-popup').addClass('d-none')
+                    }
+                }
+            });
+
+            $(".collection-option").on('click', function (event) {
+                collectionSlug = $(this).data('collectionslug').toString()
+
+                $.ajax({
+                    type: 'POST',
+                    url: window.location,
+                    data: {
+                        collection_slug: collectionSlug,
+                        song_slug: songSlug,
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    dataType: 'json',
+                    success: (res) => {
+                        
+                    }
+                })
+
+                $('#collection-popup').addClass('d-none')
+            })
+        })
+    </script>
+{% endblock content %}
