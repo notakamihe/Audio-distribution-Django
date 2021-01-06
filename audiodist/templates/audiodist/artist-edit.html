@@ -1,0 +1,31 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %}Edit profile of {{ artist.account.username}} ({{ artist.name }}){% endblock head_title %}
+
+{% block content %}
+    <h1>Edit your profile</h1>
+
+    {% for field in form %}
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <p style="width: fit-content;" class="alert alert-danger mb-4"> <strong class="alert-danger">{{ error }}</strong> </p>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    <form action="" method="POST" enctype="multipart/form-data">{% csrf_token %}
+        <div class="my-5">
+            <label for="name" class="col-1"><strong>Name</strong></label>
+            {{ form.name }}
+        </div>
+        <div class="my-5">
+            <label for="pfp" class="col-1"><strong>PFP</strong></label>
+            {{ form.pfp }}
+        </div>
+        <div class="my-5">
+            <label for="description" class="col-1"><strong>Description</strong></label>
+            {{ form.description }}
+        </div>
+        <input type="submit" value="Save" class="btn btn-success">
+    </form>
+{% endblock content %}

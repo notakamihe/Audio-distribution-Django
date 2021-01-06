@@ -1,0 +1,60 @@
+<nav class="d-flex col-12">
+    <style>
+        .user-pfp {
+            width: 3rem;
+            height: 3rem;
+            background-color: black;
+            border-radius: 3rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        nav {
+            justify-content: space-between; 
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 1rem 5rem 0.9rem;
+            z-index: 500;
+        }
+
+        #search {
+            width: 30rem;
+            padding: 0.35rem 1rem;
+            border-radius: 3rem;
+            outline: none;
+            border: 2px solid black;
+        }
+
+        .btn-register-login {
+            border-radius: 5rem;
+            background-color: #00000033;
+        }
+
+        .btn-register-login:hover {
+            border-radius: 5rem;
+            background-color: #00000033;
+        }
+    </style>
+
+    <h3><a href="{% url 'index' %}" class="text-decoration-none">Index.com</a></h1>
+    <form action=""> {% csrf_token %}
+        <input id="search" type="search" name="" id="">
+        <button class="btn p-2 mx-3" style="background-color: yellow;"><small>Search</small></button>
+    </form>
+    {% if artist %}
+        <div class="d-flex align-items-center col-2" style="justify-content: space-between;">
+            <a class="text-decoration-none text-dark" href="{% url 'create-collection' %}">Collection</a>
+            <a class="text-decoration-none text-dark" href="{% url 'create-song' %}">Song</a>
+            <a href="{% url 'artist' artist.account.username %}" class="user-pfp" 
+            style="background-image: url('{{ artist.pfp_url }}');"></a>
+        </div>
+    {% else %}
+        <div class="d-flex align-items-center" style="justify-content: space-evenly;">
+            <a class="text-decoration-none btn-light btn-register-login mx-3 p-2 px-3" href="{% url 'register' %}">Register</a>
+            <a class="text-decoration-none btn-light btn-register-login mx-3 p-2 px-3" href="{% url 'login' %}">Login</a>
+        </div>
+    {% endif %}
+</nav>

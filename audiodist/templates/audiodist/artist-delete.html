@@ -1,0 +1,21 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %}Delete the profile of {{ artist.account.username }} ({{ artist.name }}){% endblock head_title %}
+
+{% block content %}
+    <h1 class="mb-5">Delete your profile</h1>
+
+    <h2>Confim deletion</h2>
+    <div style="padding-left: 2rem;">
+        <ul class="mb-5">
+            <li><strong>Your account will not be recovered</strong></li>
+            <li><strong>You have {{ artist.num_followers }} followers</strong></li>
+            <li><strong>Your {{ artist.num_songs }} songs will be deleted forever</strong></li>
+            <li><strong>Your {{ artist.num_collections }} collections will be deleted forever</strong></li>
+        </ul>
+        <form action="" method="POST"> {% csrf_token %}
+            <button class="btn btn-danger">Confirm</button>
+            <a href="{% url 'artist' artist.account.username %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+{% endblock content %}

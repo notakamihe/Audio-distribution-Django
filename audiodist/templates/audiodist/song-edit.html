@@ -1,0 +1,40 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %} Edit {{ song.title }} {% endblock head_title %}
+
+{% block content %}
+    <h1 class="mb-5">Edit</h1>
+
+    {% for field in form %}
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <p style="width: fit-content;" class="alert alert-danger mb-4"> <strong class="alert-danger">{{ error }}</strong> </p>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+    
+    <form action="" method="POST" enctype="multipart/form-data">{% csrf_token %}
+        <div class="my-5">
+            <label for="title" class="col-1"><strong>Title</strong></label>
+            {{ form.title }}
+        </div>
+        <div class="my-5">
+            <label for="file" class="col-1"><strong>Audio file</strong></label>
+            {{ form.audio_file }}
+        </div>
+        <div class="my-5">
+            <label for="cover" class="col-1"><strong>Cover</strong></label>
+            {{ form.cover }}
+        </div>
+        <div class="my-5">
+            <label for="release-date" class="col-1"><strong>Release date</strong></label>
+            {{ form.release_date }}
+        </div>
+        <div class="my-5">
+            <label for="is-public" class="col-1"><strong>Public</strong></label>
+            {{ form.is_public }}
+        </div>
+        <input type="submit" value="Save" class="btn btn-success">
+    </form>
+    
+{% endblock content %}
