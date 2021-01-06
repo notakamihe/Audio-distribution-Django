@@ -1,4 +1,5 @@
 {% extends 'audiodist/base.html' %}
+{% load static %}
 
 {% block head_title %} Login {% endblock head_title %}
 
@@ -11,6 +12,48 @@
             background-position: center;
             background-repeat: no-repeat;
         }
+
+        .list-collection-cover {
+            width: 5rem;
+            height: 5rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 0.5rem;
+        }
+
+        .x {
+            filter: invert(100%); 
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+
+        .x img {
+            width: 1rem; 
+        }
+
+        #collection-popup {
+            position: fixed;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            transition: all 0.5s;
+            z-index: 300;
+        }
+
+        #collection-popup * {
+            z-index: 0;
+        }
+
+        .pfp {
+            width: 5rem;
+            height: 5rem;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
     </style>
     
     <div class="col-6 mx-auto mb-5 p-5 rounded">
@@ -19,21 +62,33 @@
                 <div class="cover rounded" style="background-image: url('{{ song.cover_url }}');"></div>
             </div>
             <div class="d-flex" style="margin-left: 4rem; flex-direction: column;">
-                <div style="flex: 0.75;">
+                <a href="{% url 'artist' artist.account.username %}" style="flex: 0.75; text-decoration: none;">
                     <h3 class="mb-0">{{ artist.name }}</h3>
-                    <h5 class="mt-0 muted text-success">
-                        <a href="{% url 'artist' artist.account.username %}" class="text-decoration-none">{{ artist.account.username }}</a>
-                    </h5>
-                </div>
+                    <h5 class="mt-0 muted text-success">{{ artist.account.username }}</h5>
+                    <div class="rounded-circle pfp" style="background-image: url('{{ artist.pfp_url }}');" ></div>
+                </a>
                 <p class="mb-0"><small><strong>{{ song.release_date_word_form }}</strong></small></p>
                 <p>{{ song.plays }} plays</p>
             </div>
         </div>
         <div class="text-center">
             <h1 class="mb-4">{{ song.title }}</h1>
-            <audio controls class="d-block" style="width: 100%;">
+            <audio controls class="d-block mb-4" style="width: 100%;">
                 <source src="{{ song.song_url }}">
             </audio>
+            <div class="d-flex" style="justify-content: space-evenly; ">
+                <button class="btn btn-info btn-add-to-collection" data-songslug="{{ song.slug }}">Add to collection</button>
+                <a href="{% url 'song-edit' artist.account.username song.slug %}" class="btn btn-warning">Edit</a>
+                <button class="btn btn-danger btn-delete-song">Delete</button>
+                <button class="btn btn-secondary btn-confirm-delete-song d-none" 
+                data-songslug="{{ song.slug }}">Confirm</button>
+
+                {% if song.is_public %}
+                    <button class="btn btn-dark btn-song-visibility" data-action="song-visibility">Privatize</button>
+                {% else %}
+                    <button class="btn btn-dark btn-song-visibility" data-action="song-visibility">Publicize</button>
+                {% endif %}
+            </div>
         </div>
     </div>
     <div>
@@ -52,4 +107,116 @@
             </div>
         </div>
     </div>
+
+    <div class="col-7 text-left rounded mt-5 bg-success p-5 d-none" style="height: 35rem;" id="collection-popup">
+        <button style="background-color: transparent; border: none;" class="x" id="collection-popup-x">
+            <img src="{% static 'images/x.png' %}" alt="">
+        </button>
+        <h1 class="text-light" style="text-align: left;">Collections</h1>
+        <hr style="border: 1px solid #ffffffff; opacity: 1;" class="mb-5">
+        <div style="height: 80%; overflow-y: scroll;" class="px-3">
+            {% for collection in collections %}
+                <button style="background-color: #00000033; border: none;" 
+                class="d-flex p-2 rounded mb-3 col-12 collection-option" data-action="add-to-collection" 
+                data-collectionslug="{{ collection.slug }}">
+                    <div style="flex:0.3;">
+                        <div class="list-collection-cover" style="background-image: url('{{ collection.cover_url }}');"></div>
+                    </div>
+                    <div style="text-align: left; flex:0.9" class="text-light">
+                        <h5 class="text-light" style="text-align: left; overflow-x: hidden; height: 1.7rem;"><strong>{{ collection.title }}</strong></h5>
+                        <p><strong>{{ collection.kind }}</strong> &bullet; {{ collection.release_date.year }} &bullet; {{ collection.num_tracks }} tracks</p>
+                    </div>
+                    <div style="align-self: flex-end; color: lime;">
+                        <small><strong>{{ collection.is_public|yesno:"Public,Private"  }}</strong></small>
+                    </div>
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script>
+        console.log(window.location)
+
+        $('.btn-add-to-collection').on('click', function (e) {
+            $('#collection-popup').removeClass('d-none')
+            songSlug = $(this).data('songslug')
+        })
+
+        $('#collection-popup-x').on('click', () => {
+            $('#collection-popup').addClass('d-none')
+        })
+
+        $(document).on('click', function(event) {
+            if (event.target.className.includes('btn-add-to-collection'))
+                return;
+
+            if ($("#collection-popup").css('display') != 'none') {
+                if (!($(event.target).parents('#collection-popup').length > 0) && !(event.target.id === 'collection-popup')) {
+                    $('#collection-popup').addClass('d-none')
+                }
+            }
+        });
+
+        $(".collection-option").on('click', function (event) {
+            $.ajax({
+                type: 'POST',
+                url: window.location,
+                data: {
+                    action: $(this).data('action'),
+                    collection_slug: $(this).data('collectionslug').toString(),
+                    csrfmiddlewaretoken: '{{csrf_token}}'
+                },
+                dataType: 'json',
+                success: (res) => {
+                    
+                }
+            })
+
+            $('#collection-popup').addClass('d-none')
+        })
+
+        $('.btn-delete-song').on('click', function (event) {
+            $(this).next().removeClass('d-none')
+
+            $(this).next().on('mouseout', function () {
+                $(this).addClass('d-none')
+                $(this).prev().removeClass('d-none')
+            })
+
+            $(this).next().on('click', function () {
+                $.ajax({
+                    type: 'POST',
+                    url: window.location + '/delete',
+                    data: {
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    dataType: 'json',
+                    success: (res) => {
+                        
+                    }
+                })
+
+                window.location.href = window.location.origin + '/' + '{{ artist.account.username }}'
+            })
+
+            $(this).addClass('d-none')
+        })
+
+        $('.btn-song-visibility').on('click', function () {
+            $.ajax({
+                type: 'POST',
+                url: window.location,
+                data: {
+                    action: $(this).data('action'),
+                    csrfmiddlewaretoken: '{{csrf_token}}'
+                },
+                dataType: 'json',
+                success: (res) => {
+                    $(this).html($(this).html() == 'Publicize' ? 'Privatize' : 'Publicize')
+                }
+            })
+        })
+    </script>
 {% endblock content %}

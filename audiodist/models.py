@@ -97,11 +97,19 @@ class Artist (models.Model):
 
     @property
     def num_songs (self):
-        return Song.objects.filter(artist=self).count
+        return Song.objects.filter(artist=self).count()
 
     @property
     def num_collections (self):
-        return Collection.objects.filter(artist=self).count
+        return Collection.objects.filter(artist=self).count()
+
+    @property
+    def num_followers (self):
+        return Follower.objects.filter(of=self).count()
+
+    @property
+    def num_following (self):
+        return Follower.objects.filter(by=self).count()
 
 
 class Follower (models.Model):

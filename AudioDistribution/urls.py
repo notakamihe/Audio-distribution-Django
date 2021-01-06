@@ -28,8 +28,14 @@ urlpatterns = [
     path('create/song/', song_create_view, name='create-song'),
     path('create/collection/', collection_create_view, name='create-collection'),
     path('<str:username>/', artist_view, name='artist'),
+    path('<str:username>/edit', artist_edit_view, name='artist-edit'),
+    path('<str:username>/delete', artist_delete_view, name='artist-delete'),
     path('<str:username>/songs/<slug:song_slug>', song_view, name='song'),
-    path('<str:username>/collections/<slug:collection_slug>', collection_view, name='collection')
+    path('<str:username>/songs/<slug:song_slug>/edit', song_edit_view, name='song-edit'),
+    path('<str:username>/songs/<slug:song_slug>/delete', song_delete_view, name='song-delete'),
+    path('<str:username>/collections/<slug:collection_slug>', collection_view, name='collection'),
+    path('<str:username>/collections/<slug:collection_slug>/edit', collection_edit_view, name='collection-edit'),
+    path('<str:username>/collections/<slug:collection_slug>/delete', collection_delete_view, name='collection-delete')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

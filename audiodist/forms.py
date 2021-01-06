@@ -75,6 +75,34 @@ class CreateAccountForm (forms.ModelForm):
         return user
 
 
+class ArtistEditForm (forms.ModelForm):
+    pfp = forms.ImageField(required=False, widget=forms.FileInput)
+
+    class Meta:
+        model = Artist
+        fields = ['name', 'pfp', 'description']
+
+    def __init__ (self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['name'].widget.attrs.update({ 'class': 'col-4 p-2', 'id': 'name' })
+        self.fields['pfp'].widget.attrs.update({ 'class': 'col-4 p-2', 'id': 'pfp' })
+        self.fields['description'].widget.attrs.update({ 'class': 'col-4 p-2', 'id': 'description' })
+
+    def save(self, commit=True):
+        artist = super(ArtistEditForm, self).save(commit=False)
+
+        artist.name = self.cleaned_data.get('name')
+        artist.description = self.cleaned_data.get('description')
+
+        if self.cleaned_data.get('pfp'):
+            artist.pfp = self.cleaned_data.get('pfp')
+
+        if commit:
+            artist.save()
+        return artist
+
+
 class SongForm (forms.ModelForm):
     class Meta:
         model = Song
@@ -105,9 +133,12 @@ class SongForm (forms.ModelForm):
 
         song.artist = Artist.objects.get(account=account)
         song.title = self.cleaned_data.get('title')
-        song.audio_file = self.cleaned_data.get('audio_file')
+        song.slug = ''
         song.release_date = self.cleaned_data.get('release_date')
         song.is_public = self.cleaned_data.get('is_public')
+
+        if self.cleaned_data.get('audio_file'):
+            song.audio_file = self.cleaned_data.get('audio_file')
 
         if self.cleaned_data.get('cover'):
             song.cover = self.cleaned_data.get('cover')
@@ -117,7 +148,21 @@ class SongForm (forms.ModelForm):
         return song
 
 
+class SongEditForm (SongForm):
+    audio_file = forms.FileField(required=False, widget=forms.FileInput)
+    cover = forms.ImageField(required=False, widget=forms.FileInput)
+
+    class Meta:
+        model = Song
+        fields = ['title', 'audio_file', 'cover', 'release_date', 'is_public']
+
+    def __init__ (self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class CollectionForm (forms.ModelForm):
+    cover = forms.ImageField(required=False, widget=forms.FileInput)
+
     class Meta:
         model = Collection
         fields = [ 'title', 'description', 'cover', 'kind', 'release_date', 'is_public' ]
@@ -127,7 +172,9 @@ class CollectionForm (forms.ModelForm):
 
         self.fields['title'].widget.attrs.update({ 'class': 'col-9 p-2', 'id': 'title' })
         self.fields['kind'].widget.attrs.update({ 'class': 'p-2', 'id': 'kind' })
-        self.fields['description'].widget.attrs.update({ 'cols': '90', 'id': 'kind' })
+        self.fields['description'].widget.attrs.update({ 'cols': '90', 'id': 'description' })
+        self.fields['is_public'].widget.attrs.update({ 'id': 'is-public' })
+        self.fields['cover'].widget.attrs.update({ 'id': 'cover' })
 
         self.fields['release_date'].widget = DateInput(attrs={
             'class': 'col-2 p-2', 'id': 'release-date'

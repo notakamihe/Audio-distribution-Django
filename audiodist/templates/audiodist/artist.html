@@ -5,6 +5,10 @@
 
 {% block content %}
     <style>
+        body {
+            padding-top: 0;
+        }
+
         .pfp {
             width: 20rem;
             height: 20rem;
@@ -101,6 +105,16 @@
     <h1 class="mb-5">
         <strong class="text-success">{{ artist.name }}</strong>
         <span class="text-muted small mx-3">@{{ artist.account.username }}</span>
+        {% if not is_authorized %}
+            {% if is_user_following %}
+                <button class="btn btn-secondary unfollow" id="follow" data-action="follow">Unfollow</button>
+            {% else %}
+                <button class="btn btn-primary" id="follow" data-action="follow">Follow</button>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'artist-edit' artist.account.username %}" class="btn btn-warning">Edit</a>
+            <a href="{% url 'artist-delete' artist.account.username %}" class="btn btn-danger">Delete</a>
+        {% endif %} 
     </h1>
 
     <div style="width: 95%; margin: auto;" class="d-flex mb-5">
@@ -108,8 +122,8 @@
         <div class="col-8 mx-5 rounded d-flex" style="border: 2px #3b8855 solid; padding: 2.5rem 2.5rem 0rem;">
             <div class="d-flex" style="flex:0.6; flex-direction: column;">
                 <p style="flex:0.5;"><strong>Member since: </strong><span>{{ artist.date_joined_word_form }}</span></p>
-                <p class="big"><strong>Followers: &nbsp;</strong><strong class="text-success">3</strong></p>
-                <p class="big"><strong>Following: &nbsp;</strong><strong class="text-success">5</strong></p>
+                <p class="big"><strong>Followers: &nbsp;</strong><strong class="text-success" id="num-followers">{{ artist.num_followers }}</strong></p>
+                <p class="big"><strong>Following: &nbsp;</strong><strong class="text-success">{{ artist.num_following }}</strong></p>
             </div>
             <div style="flex: 0.7;">
                 <p class="mb-4"><strong>Description:</strong></p>
@@ -139,6 +153,18 @@
                         </a>
                         <div style="flex:0.5;">
                             <button class="btn btn-info btn-add-to-collection" data-songslug="{{ song.slug }}">Add to collection</button>
+                            <a href="{% url 'song-edit' artist.account.username song.slug %}" class="btn btn-warning">Edit</a>
+                            <button class="btn btn-danger btn-delete-song">Delete</button>
+                            <button class="btn btn-secondary btn-confirm-delete-song d-none" 
+                            data-songslug="{{ song.slug }}">Confirm</button>
+
+                            {% if song.is_public %}
+                                <button class="btn btn-dark btn-song-visibility" data-songslug="{{ song.slug }}" 
+                                data-action="song-visibility">Privatize</button>
+                            {% else %}
+                                <button class="btn btn-dark btn-song-visibility" data-songslug="{{ song.slug }}" 
+                                data-action="song-visibility">Publicize</button>
+                            {% endif %}
                         </div>
                         <audio controls class="d-block" style="width: 100%;">
                             <source src="{{ song.song_url }}">
@@ -217,6 +243,7 @@
     <script>
         $(document).ready(() => {
             var songSlug;
+            var currentConfirm = null;
 
             audioTags = $('audio')
             
@@ -245,7 +272,6 @@
 
                 if ($("#collection-popup").css('display') != 'none') {
                     if (!($(event.target).parents('#collection-popup').length > 0) && !(event.target.id === 'collection-popup')) {
-                        console.log('Yay')
                         $('#collection-popup').addClass('d-none')
                     }
                 }
@@ -269,6 +295,73 @@
                 })
 
                 $('#collection-popup').addClass('d-none')
+            })
+
+            $('.btn-delete-song').on('click', function (event) {
+                $(this).next().removeClass('d-none')
+
+                $(this).next().on('mouseout', function () {
+                    $(this).addClass('d-none')
+                    $(this).prev().removeClass('d-none')
+                })
+
+                $(this).next().on('click', function () {
+                    $.ajax({
+                        type: 'POST',
+                        url: window.location + 'songs/' + $(this).data('songslug') + '/delete',
+                        data: {
+                            csrfmiddlewaretoken: '{{csrf_token}}'
+                        },
+                        dataType: 'json',
+                        success: (res) => {
+                            
+                        }
+                    })
+
+                    window.location.href = ''
+                })
+
+                $(this).addClass('d-none')
+            })
+
+            $('.btn-song-visibility').on('click', function () {
+                $.ajax({
+                    type: 'POST',
+                    url: window.location,
+                    data: {
+                        action: $(this).data('action'),
+                        song_slug: $(this).data('songslug'),
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    dataType: 'json',
+                    success: (res) => {
+                        $(this).html($(this).html() == 'Publicize' ? 'Privatize' : 'Publicize')
+                    }
+                })
+            })
+
+            $(document).on('click', '#follow', function () {
+                $.ajax({
+                    type: 'POST',
+                    url: window.location,
+                    data: {
+                        action: $(this).data('action'),
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    dataType: 'json',
+                    success: (res) => {
+                        if (res.follow) {
+                            $(this).after("<button class='btn btn-secondary unfollow' id='follow' data-action='follow'>Unfollow</button>")
+                            $(this).remove()
+                        } else
+                        {
+                            $(this).after("<button class='btn btn-primary' id='follow' data-action='follow'>Follow</button>")
+                            $(this).remove()
+                        }
+
+                        $('#num-followers').html(res.new_num_followers)
+                    }
+                })
             })
         })
     </script>

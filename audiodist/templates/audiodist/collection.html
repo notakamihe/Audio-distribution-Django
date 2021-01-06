@@ -1,4 +1,5 @@
 {% extends 'audiodist/base.html' %}
+{% load static %}
 
 {% block head_title %} Login {% endblock head_title %}
 
@@ -19,11 +20,56 @@
             background-position: center;
             background-repeat: no-repeat;
         }
+
+        .pfp {
+            width: 5rem;
+            height: 5rem;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        .song-entry:hover .btn-remove-song {
+            display: block;
+        }
+
+        .btn-remove-song  {
+            display: none;
+            width: 3rem;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            border: none;
+            background-color: inherit;
+            background-image: linear-gradient(to right, #ffffff00, pink 30%);
+            transition: all 0.5s;
+        }
+
+        .btn-remove-song img {
+            width: 50%;
+            margin-right: 0;
+            position: absolute;
+            top: 33%;
+            right: 0.4rem;
+        }
     </style>
 
     <div class="mx-auto text-center">
         <h1 class="my-5">{{ collection.title }}</h1>
         <p class="my-5 col-8 mx-auto" style="text-align: justify; text-align-last: center;">{{ collection.description }}</p>
+        <div style="margin-bottom: 5rem;">
+            <a class="btn btn-warning" style="margin-right: 2rem;" href="{% url 'collection-edit' artist.account.username collection.slug %}">Edit</a>
+            <button class="btn btn-danger btn-delete-collection">Delete</button>
+            <button class="btn btn-secondary btn-confirm-delete-collection d-none">Confirm</button>
+            {% if collection.is_public %}
+                <button class="btn btn-dark btn-collection-visibility" data-action="collection-visibility"
+                style="margin-left: 2rem;">Privatize</button>
+            {% else %}
+                <button class="btn btn-dark btn-collection-visibility" data-action="collection-visibility"
+                style="margin-left: 2rem;">Publicize</button>
+            {% endif %}
+        </div>
         <div class="col-9 mx-auto d-flex">
             <div class="d-flex" style="text-align: left; margin-right: 2rem; flex-direction: column;">
                 <div class="cover rounded mb-4" style="background-image: url('{{ collection.cover_url }}');"></div>
@@ -31,24 +77,104 @@
                     <p class="mb-0"><small><strong>{{ collection.kind }} &bullet; {{ collection.release_date_word_form }}</strong></small></p>
                     <p><strong>{{ collection.length.minutes }} min {{ collection.length.seconds }} sec</strong></p>
                 </div>
-                <h3 class="mb-0">{{ artist.name }}</h3>
-                <h5 class="mt-0"><a class="text-decoration-none" href="{% url 'artist' artist.account.username %}">{{ artist.account.username }}</a></h5>
+                <a href="{% url 'artist' artist.account.username %}" class="d-flex align-items-center text-decoration-none">
+                    <div class="rounded-circle pfp" style="background-image: url('{{ artist.pfp_url }}');
+                    margin-right: 2rem;" ></div>
+                    <div>
+                        <h3 class="mb-0">{{ artist.name }}</h3>
+                        <h5 class="mt-0">{{ artist.account.username }}</h5>
+                    </div>
+                </a>
 
             </div>
             <div class="col-9">
                 <div class="row px-4">
                     {% for i, song in songs %}
-                        <div class="d-flex col-lg-5 py-2 mx-3 my-1 rounded" style="align-items: center; border: 1px solid #3b8855;">
-                            <h3 class="mb-0" style="margin: 0 1rem 0 0;"><strong>{{ i }}.</strong></h3>
-                            <div style="margin-right: 1.5rem;">
-                                <div class="song-cover rounded" style="background-image: url('{{ song.cover_url }}');"></div>
-                            </div>
-                            
-                            <h6 class="mb-0" style="align-self: center; text-align: left;"><strong style="word-break: break-all;">{{ song.title }}</strong></h6>
+                        <div class="d-flex col-lg-5 py-2 mx-3 my-1 rounded bg-transparent song-entry" 
+                        style="border: 1px solid #3b8855; position: relative;">
+                            <a href="{% url 'song' artist.account.username song.slug %}" 
+                            class="d-flex align-items-center text-decoration-none">
+                                <h3 class="mb-0" style="margin: 0 1rem 0 0;"><strong class="song-position">{{ i }}.</strong></h3>
+                                <div style="margin-right: 1.5rem;">
+                                    <div class="song-cover rounded" style="background-image: url('{{ song.cover_url }}');"></div>
+                                </div>
+                                <h6 class="mb-0" style="align-self: center; text-align: left;"><strong style="word-break: break-all;">{{ song.title }}</strong></h6>
+                            </a>
+                            <button class="btn-remove-song" data-action="remove-song" data-slug="{{ song.slug }}">
+                                <img src="{% static 'images/minus.png' %}">
+                            </button>
                         </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script>
+        $('.btn-delete-collection').on('click', function (event) {
+            $(this).next().removeClass('d-none')
+
+            $(this).next().on('mouseout', function () {
+                $(this).addClass('d-none')
+                $(this).prev().removeClass('d-none')
+            })
+
+            $(this).next().on('click', function () {
+                $.ajax({
+                    type: 'POST',
+                    url: window.location + '/delete',
+                    data: {
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    dataType: 'json',
+                    success: (res) => {
+                        
+                    }
+                })
+
+                window.location.href = window.location.origin + '/' + '{{ artist.account.username }}'
+            })
+
+            $(this).addClass('d-none')
+        })
+
+        $('.btn-collection-visibility').on('click', function () {
+            $.ajax({
+                type: 'POST',
+                url: window.location,
+                data: {
+                    action: $(this).data('action'),
+                    csrfmiddlewaretoken: '{{csrf_token}}'
+                },
+                dataType: 'json',
+                success: (res) => {
+                    $(this).html($(this).html() == 'Publicize' ? 'Privatize' : 'Publicize')
+                }
+            })
+        })
+
+        $('.btn-remove-song').on('click', function () {
+            $.ajax({
+                type: 'POST',
+                url: window.location,
+                data: {
+                    action: $(this).data('action'),
+                    slug: $(this).data('slug'),
+                    csrfmiddlewaretoken: '{{csrf_token}}'
+                },
+                dataType: 'json',
+                success: (res) => {
+                    $(this).parent().remove()
+
+                    remainingSongs = document.getElementsByClassName('song-position')
+                    
+                    for (var i = 0; i < remainingSongs.length; i++) {
+                        remainingSongs[i].innerHTML = i + 1 + '.';
+                    }
+                }
+            })
+        })
+    </script>
 {% endblock content %}

@@ -9,7 +9,9 @@
     integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 </head>
-<body class="bg-light p-5">
+<body class="bg-light p-5" style="margin-top: 3rem;">
+    {% include 'audiodist/components/nav.html' %}
+
     {% block content %}
         <h1>My website</h1>
     {% endblock content %}
