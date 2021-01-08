@@ -100,8 +100,16 @@ class Artist (models.Model):
         return Song.objects.filter(artist=self).count()
 
     @property
+    def num_public_songs (self):
+        return Song.objects.filter(artist=self, is_public=True).count()
+
+    @property
     def num_collections (self):
         return Collection.objects.filter(artist=self).count()
+
+    @property
+    def num_public_collections (self):
+        return Collection.objects.filter(artist=self, is_public=True).count()
 
     @property
     def num_followers (self):
@@ -142,8 +150,20 @@ class Song (models.Model):
             return ''
 
     @property
-    def release_date_word_form (self):
-        return self.release_date.strftime('%B %d, %Y')
+    def time_ago (self):
+        if (datetime.datetime.now().date() - self.release_date).days == 0:
+            return 'Today'
+        elif (datetime.datetime.now().date() - self.release_date).days == 1:
+            return 'Yesterday'
+        elif (datetime.datetime.now().date() - self.release_date).days < 7:
+            return f'{(datetime.datetime.now().date() - self.release_date).days} days ago'
+        elif (datetime.datetime.now().date() - self.release_date).days < 30:
+            return f'{(datetime.datetime.now().date() - self.release_date).days // 7} weeks ago'
+        else:
+            if (datetime.datetime.now().year - self.release_date.year >= 1):
+                return self.release_date.strftime('%B %d, %Y')
+            else:
+                return self.release_date.strftime('%B %d')
 
     @property
     def duration (self):
@@ -173,8 +193,20 @@ class Collection (models.Model):
             return ''
 
     @property
-    def release_date_word_form (self):
-        return self.release_date.strftime('%B %d, %Y')
+    def time_ago (self):
+        if (datetime.datetime.now().date() - self.release_date).days == 0:
+            return 'Today'
+        elif (datetime.datetime.now().date() - self.release_date).days == 1:
+            return 'Yesterday'
+        elif (datetime.datetime.now().date() - self.release_date).days < 7:
+            return f'{(datetime.datetime.now().date() - self.release_date).days} days ago'
+        elif (datetime.datetime.now().date() - self.release_date).days < 30:
+            return f'{(datetime.datetime.now().date() - self.release_date).days // 7} weeks ago'
+        else:
+            if (datetime.datetime.now().year - self.release_date.year == 0):
+                return self.release_date.strftime('%B %d')
+            else:
+                return self.release_date.strftime('%B %d, %Y')
 
     @property
     def num_tracks (self):
@@ -194,6 +226,17 @@ class Collection (models.Model):
 class CollectionTrack (models.Model):
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
     song = models.ForeignKey(Song, on_delete=models.CASCADE)
+
+
+class Comment (models.Model):
+    to = models.ForeignKey(Song, on_delete=models.CASCADE)
+    by = models.ForeignKey(Artist, on_delete=models.CASCADE)
+    time_commented = models.DateTimeField(auto_now_add=True)
+    content = models.TextField(max_length=500)
+
+    @property
+    def time_word_form (self):
+        return self.time_commented.strftime('%B %d, %Y %-I:%M %p')
 
 
 def slug_generator (sender, instance, *args, **kwargs):

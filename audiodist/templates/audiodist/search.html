@@ -1,0 +1,176 @@
+{% extends 'audiodist/base.html' %}
+
+{% block head_title %}Search{% endblock head_title %}
+
+{% block content %}
+    <style>
+        .cover {
+            width: 14rem;
+            height: 14rem;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2.5px solid #3b8855;
+            border-radius: 0.5rem;
+        }
+
+        .tracklist {
+            height: 8rem;
+            overflow-y: scroll;
+            border: 2px solid #3b8855;
+        }
+
+        .tracklist > div {
+            margin-top: -1px;
+        }
+
+        .tracklist::-webkit-scrollbar {
+            width: 0.15rem;
+        }
+
+        .tracklist::-webkit-scrollbar-thumb {
+            background-color: black;
+            border-radius: 2rem;
+        }
+
+        .tracklist-cover {
+            width: 3rem;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: inherit;
+        }
+
+        .artist-list-pfp {
+            width: 20rem;
+            height: 20rem;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+        }
+    </style>
+
+    <h1 class="mb-5"> {{ results.num_results }} Search result(s)</h1>
+    <div style="margin-top:5rem;" class="mx-auto text-center">
+        {% if results.songs.count %}
+            <h2 class="mb-5">Songs</h2>
+            {% for song in results.songs %}
+                {% if user == song.artist.account or song.is_public %}
+                <div style="border: 1px #3b8855 solid; text-align: left;" 
+                class="col-8 p-3 mx-auto d-flex my-4 text-decoration-none text-dark">
+                    <div style="flex: 0.55;">
+                        <div class="cover" style="background-image: url('{{ song.cover_url }}');"></div>
+                    </div>
+                    <div class="d-flex" style="flex: 0.95; flex-direction: column;">
+                        <a href="{% url 'song' song.artist.account.username song.slug %}" class="text-decoration-none text-dark" 
+                        style="flex:0.7;">
+                            <h2 class="mt-2 mb-0">{{ song.title }}</h2>
+                            <small><span class="text-success song-plays">{{ song.plays }} plays</span> &bullet; 
+                                {{ song.time_ago }}</small>
+                        </a>
+                        <audio controls class="d-block unplayed" data-action="play" data-slug="{{ song.slug }}" style="width: 100%;">
+                            <source src="{{ song.song_url }}">
+                        </audio>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="mx-auto text-center">
+        {% if results.collections.count %}
+            <h2 class="my-5">Collections</h2>
+            {% for collection in results.collections %}
+                {% if user == collection.artist.account or collection.is_public %}
+                <div style="border: 1px #3b8855 solid; text-align: left;" 
+                class="col-8 p-3 mx-auto d-flex my-4">
+                    <div style="flex: 0.55;">
+                        <div class="cover" style="background-image: url('{{ collection.cover_url }}');"></div>
+                    </div>
+                    <a class="d-flex text-decoration-none text-dark" style="flex: 0.95; flex-direction: column;" 
+                    href="{% url 'collection' collection.artist.account.username collection.slug %}">
+                        <div style="flex:0.9">
+                            <h2 class="mt-2 mb-0">{{ collection.title }}</h2>
+                            <small><span class="text-success">{{ collection.kind }} </span> &bullet; 
+                                {{ collection.release_date.year }} &bullet; {{ collection.num_tracks }} tracks 
+                                &bullet; {{ collection.length_rounded }} min</small>
+                        </div>
+                        {% if collection.num_tracks %}
+                            <div class="tracklist rounded p-2">
+                                {% for track in results.tracks %}
+                                    {% if track.collection == collection %}
+                                        <div style="height: 3rem; border: 1px solid #3b8855; align-items: center;" class="d-flex rounded">
+                                            <div style="height: 100%; border-radius: inherit; flex:0.15;">
+                                                <div class="tracklist-cover" style="background-image: url('{{ track.song.cover_url }}');"></div>
+                                            </div>
+                                            <p class="mb-0" style="flex:0.75; height: 1.6rem; overflow: hidden;">{{ track.song.title }}</p>
+                                            <small><strong><em>{{ track.song.plays }} plays</em></strong></small>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </a>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="mx-auto text-center">
+        {% if results.artists|length %}
+            <h2 class="my-5">Artists</h2>
+            {% for artist in results.artists %}
+                <a class="d-flex my-5 text-decoration-none text-dark" style="justify-content: center;" 
+                href="{% url 'artist' artist.account.username %}">
+                    <div style="flex: 0.4;">
+                        <div class="artist-list-pfp" style="background-image: url('{{ artist.pfp_url }}');"></div>
+                    </div>
+                    <div class="d-flex" style="flex-direction: column;">
+                        <h1 class="mt-5 text-center mb-0 text-success">{{ artist.name }}</h1>
+                        <h3 class="text-center" style="color: #00000088; flex: 1;">{{ artist.account.username }}</h3>
+                        <p class="mx-auto text-center" style="line-height: 1; width: 25rem; height: 5.2rem; overflow: hidden; word-wrap: break-word;">
+                            <small>{{ artist.description }}</small>
+                        </p>
+                        <p><strong>{{ artist.num_followers }} followers</strong></p>
+                    </div>
+                </a>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <script>
+        $(document).ready(() => {
+            setInterval(function () {
+                audioPlayers = $('.unplayed')
+
+                for (p of audioPlayers)
+                {
+                    if (!p.paused) {
+                        $(p).removeClass('unplayed')
+
+                        $.ajax({
+                            type: 'POST',
+                            url: window.location,
+                            data: {
+                                action: $(p).data('action'),
+                                song_slug: $(p).data('slug'),
+                                csrfmiddlewaretoken: '{{csrf_token}}'
+                            },
+                            dataType: 'json',
+                            success: function (res, status) {
+                            }
+                        })
+                        
+                        $(p).parent().find('.song-plays').html(`${parseInt(p.parentNode.querySelector('.song-plays').innerHTML.match(/\d+/))+1} plays`)
+                    }
+                }
+            }, 10)
+        })
+    </script>
+{% endblock content %}

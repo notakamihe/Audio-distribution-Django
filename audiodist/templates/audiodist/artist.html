@@ -105,16 +105,21 @@
     <h1 class="mb-5">
         <strong class="text-success">{{ artist.name }}</strong>
         <span class="text-muted small mx-3">@{{ artist.account.username }}</span>
-        {% if not is_authorized %}
-            {% if is_user_following %}
-                <button class="btn btn-secondary unfollow" id="follow" data-action="follow">Unfollow</button>
+        {% if user.is_authenticated %}
+            {% if not is_authorized %}
+                {% if is_user_following %}
+                    <button class="btn btn-secondary unfollow" id="follow" data-action="follow">Unfollow</button>
+                {% else %}
+                    <button class="btn btn-primary" id="follow" data-action="follow">Follow</button>
+                {% endif %}
             {% else %}
-                <button class="btn btn-primary" id="follow" data-action="follow">Follow</button>
-            {% endif %}
-        {% else %}
-            <a href="{% url 'artist-edit' artist.account.username %}" class="btn btn-warning">Edit</a>
-            <a href="{% url 'artist-delete' artist.account.username %}" class="btn btn-danger">Delete</a>
-        {% endif %} 
+                <a href="{% url 'artist-edit' artist.account.username %}" class="btn btn-warning">Edit</a>
+                <a href="{% url 'artist-delete' artist.account.username %}" class="btn btn-danger">Delete</a>
+                <form action="{% url 'logout' %}" method="POST" class="d-inline-block"> {% csrf_token %}
+                    <input class="btn btn-secondary" id="logout" data-action="logout" type="submit" value="Log out">
+                </form>
+            {% endif %} 
+        {% endif %}
     </h1>
 
     <div style="width: 95%; margin: auto;" class="d-flex mb-5">
@@ -134,11 +139,16 @@
     </div>
 
     <div class="pt-5 mx-auto text-center">
-        <h2 class="mb-3"><strong>Songs ({{ artist.num_songs }})</strong></h2>
-        <a class="btn btn-success mb-5" href="{% url 'create-song' %}">Post a song</a>
+        {% if user == artist.account %}
+            <h2 class="mb-3"><strong>Songs ({{ artist.num_songs }})</strong></h2>
+            <a class="btn btn-success mb-5" href="{% url 'create-song' %}">Post a song</a>
+        {% else %}
+            <h2 class="mb-3"><strong>Songs ({{ artist.num_public_songs }})</strong></h2>
+        {% endif %}
 
         <div>
             {% for song in songs %}
+                {% if user == artist.account or song.is_public %}
                 <div style="border: 1px #3b8855 solid; text-align: left;" 
                 class="col-8 p-3 mx-auto d-flex my-4 text-decoration-none text-dark">
                     <div style="flex: 0.55;">
@@ -148,9 +158,11 @@
                         <a href="{% url 'song' artist.account.username song.slug %}" class="text-decoration-none text-dark" 
                         style="flex:0.7;">
                             <h2 class="mt-2 mb-0">{{ song.title }}</h2>
-                            <small><span class="text-success">{{ song.plays }} plays</span> &bullet; 
-                                {{ song.release_date_word_form }}</small>
+                            <small><span class="text-success song-plays">{{ song.plays }} plays</span> &bullet; 
+                                {{ song.time_ago }}</small>
                         </a>
+
+                        {% if user == artist.account %}
                         <div style="flex:0.5;">
                             <button class="btn btn-info btn-add-to-collection" data-songslug="{{ song.slug }}">Add to collection</button>
                             <a href="{% url 'song-edit' artist.account.username song.slug %}" class="btn btn-warning">Edit</a>
@@ -166,19 +178,26 @@
                                 data-action="song-visibility">Publicize</button>
                             {% endif %}
                         </div>
-                        <audio controls class="d-block" style="width: 100%;">
+                        {% endif %}
+                        <audio controls class="d-block unplayed" data-action="play" data-slug="{{ song.slug }}" style="width: 100%;">
                             <source src="{{ song.song_url }}">
                         </audio>
                     </div>
                 </div>
+                {% endif %}
             {% endfor %}
         </div>
 
-        <h2 style="margin-top: 5rem;" class="mb-3"><strong>Collections ({{ artist.num_collections }})</strong></h2>
-        <a class="btn btn-success mb-5" href="{% url 'create-collection' %}">Create a collection</a>
+        {% if user == artist.account %}
+            <h2 style="margin-top: 5rem;" class="mb-3"><strong>Collections ({{ artist.num_collections }})</strong></h2>
+            <a class="btn btn-success mb-5" href="{% url 'create-collection' %}">Create a collection</a>
+        {% else %}
+        <h2 style="margin-top: 5rem;" class="mb-3"><strong>Collections ({{ artist.num_public_collections }})</strong></h2>
+        {% endif %}
 
         <div>
             {% for collection in collections %}
+                {% if user == artist.account or collection.is_public %}
                 <div style="border: 1px #3b8855 solid; text-align: left;" 
                 class="col-8 p-3 mx-auto d-flex my-4">
                     <div style="flex: 0.55;">
@@ -209,6 +228,7 @@
                         {% endif %}
                     </a>
                 </div>
+                {% endif %}
             {% endfor %}
         </div>
 
@@ -364,5 +384,31 @@
                 })
             })
         })
+
+        setInterval(function () {
+            audioPlayers = $('.unplayed')
+
+            for (p of audioPlayers)
+            {
+                if (!p.paused) {
+                    $(p).removeClass('unplayed')
+
+                    $.ajax({
+                        type: 'POST',
+                        url: window.location,
+                        data: {
+                            action: $(p).data('action'),
+                            song_slug: $(p).data('slug'),
+                            csrfmiddlewaretoken: '{{csrf_token}}'
+                        },
+                        dataType: 'json',
+                        success: function (res, status) {
+                        }
+                    })
+                    
+                    $(p).parent().find('.song-plays').html(`${parseInt(p.parentNode.querySelector('.song-plays').innerHTML.match(/\d+/))+1} plays`)
+                }
+            }
+        }, 10)
     </script>
 {% endblock content %}

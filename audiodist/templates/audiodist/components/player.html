@@ -1,0 +1,151 @@
+<style>
+    #player-slider {
+        background: black;
+        border-radius: 8px;
+        height: 4px;
+        outline: none;
+        transition: background 450ms ease-in;
+        -webkit-appearance: none;
+        margin-top: 0.5rem;
+    }
+
+    #player-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 15px;
+        width: 15px;
+        background-color: #9922dd;
+        cursor: pointer;
+        transform: rotate(45deg);
+    }
+
+    #player-bar {
+        position: fixed; 
+        bottom: 0; 
+        background-color: white; 
+        height: 5rem; 
+        align-items: center; 
+        justify-content: center;
+        bottom: 0;
+        left: 0;
+    }
+</style>
+
+<audio id="audio-player"></audio>
+
+<div class="d-flex col-12" id="player-bar">
+    <div style="flex:0.15;">
+    <button class="btn btn-secondary rounded-circle" id="skip-prev"><i class="fa fa-step-backward" aria-hidden="true"'></i></button>
+    <button class="btn rounded-circle" style="background-color: #9922dd;" id="play"><i class="fa fa-play" aria-hidden="true"'></i></button>
+    <button class="btn btn-success rounded-circle d-none" style="background-color: #9922dd; color: white;" id="pause"><i class="fa fa-pause" aria-hidden="true"'></i></button>
+    <button class="btn btn-secondary rounded-circle" id="skip-next"><i class="fa fa-step-forward" aria-hidden="true"'></i></button>
+    </div>
+    <div style="flex:0.225;">
+        <p class="mb-0"><strong>Song by artist</strong></p>
+    </div>
+    <div class="d-flex" style="flex:0.55;">
+        <p class="mb-0 mx-4" style="color: #9922dd;"><strong id="progression">0:00</strong></p>
+        <input type="range" min="0" max="100" value="0" class="col-9" id="player-slider">
+        <p class="mb-0 mx-4" id="duration">0:00</p>
+    </div>
+    <div class="d-flex">
+        <button class="bg-transparent" style="border:none; outline:none;" id="mute"><i class="fa fa-volume-up mx-3" aria-hidden="true"></i></button>
+        <input type="range" min="0" max="100" value="100" class="" id="volume">
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" 
+integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" 
+integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>    
+
+
+<script>
+    $(document).ready(function () {
+        var audioPlayer = document.getElementById('audio-player')
+        var playerSlider = $('#player-slider')
+
+        var tracklist = [ ]
+        var trackNum = 0
+        
+        $(audioPlayer).attr('src', tracklist[trackNum])
+
+        var value = (playerSlider.value-playerSlider.min)/(playerSlider.max-playerSlider.min) * 100
+        playerSlider.css('background', 'linear-gradient(to right, #9922DD 0%, #9922DD ' + value + '%, black ' + value + '%, black 100%)')
+
+        $('#player-slider').on('change', function() {
+            var value = (this.value-this.min)/(this.max-this.min) * 100
+            $(this).css('background', 'linear-gradient(to right, #9922DD 0%, #9922DD ' + value + '%, black ' + value + '%, black 100%)')
+        });
+
+        $('#player-slider').on('input', function() {
+            sliderPos = audioPlayer.duration * (this.value / 100);
+            audioPlayer.currentTime = sliderPos;
+        });
+
+        setInterval(function(){
+            let position = 0
+
+            if(!isNaN(audioPlayer.duration)) {
+                position = audioPlayer.currentTime * (100 / audioPlayer.duration);
+                $('#player-slider').val(position)
+                $("#player-slider").trigger("change")
+            }
+
+            if (audioPlayer.ended) {
+                if (trackNum == tracklist.length - 1) {
+                    trackNum = -1
+                }
+
+                $(audioPlayer).attr('src', tracklist[++trackNum])
+                audioPlayer.play()
+            }
+        }, 500)
+        
+        setInterval(function(){
+            $('#progression').html(`${parseInt(audioPlayer.currentTime / 60)}:${parseInt(audioPlayer.currentTime % 60).toString().padStart(2, '0')}`)
+            $('#duration').html(`${parseInt(audioPlayer.duration / 60)}:${parseInt(audioPlayer.duration % 60).toString().padStart(2, '0')}`)
+        }, 1000)
+
+        $('#play').on('click', function () {
+            audioPlayer.play()
+
+            $(this).addClass('d-none')
+            $(this).next().removeClass('d-none')
+        })
+
+        $('#pause').on('click', function () {
+            audioPlayer.pause()
+
+            $(this).addClass('d-none')
+            $(this).prev().removeClass('d-none')
+        })
+
+        $('#volume').on('input', function() {
+            audioPlayer.volume = $(this).val() / 100;
+        });
+
+        $('#mute').on('click', function() {
+            $(audioPlayer).prop('muted', !$(audioPlayer).prop('muted'))
+        });
+
+        $('#skip-next').on('click', function(){
+            if (trackNum == tracklist.length - 1) {
+                trackNum = -1
+            }
+
+            $(audioPlayer).attr('src', tracklist[++trackNum])
+            audioPlayer.play()
+        })
+
+        $('#skip-prev').on('click', function(){
+            if (trackNum == 0) {
+                trackNum = tracklist.length
+            }
+
+            $(audioPlayer).attr('src', tracklist[--trackNum])
+            audioPlayer.play()
+        })
+    })
+</script>

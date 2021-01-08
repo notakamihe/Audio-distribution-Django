@@ -3,5 +3,45 @@
 {% block head_title %} Homepage {% endblock head_title %}
 
 {% block content %}
-    <h1>Index.com</h1>
+    <style>
+        .artist-list-pfp {
+            width: 14rem;
+            height: 14rem;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+        }
+
+        .artists::-webkit-scrollbar {
+            height: 1rem;
+        }
+
+        .artists::-webkit-scrollbar-thumb {
+            background-color: dodgerblue;
+            border-radius: 2rem;
+        }
+    </style>
+
+    <h1 style="margin-bottom: 7rem;">Welcome to Index.com</h1>
+    
+    <div class="mb-5">
+        <h2 class="mb-5">Artists to follow</h2>
+        <div class="px-3 artists" style="white-space: nowrap; overflow-x: scroll;">
+            {% for artist in artists %}
+                <a style="width: 15rem;" class="mx-5 d-inline-block text-decoration-none text-dark" href="{% url 'artist' artist.account.username %}">
+                    <div class="artist-list-pfp mb-3 mx-auto" style="background-image: url('{{ artist.pfp_url }}');"></div>
+                    <div class="mx-auto text-center">
+                        <h3 class="">{{ artist.name }}</h3>
+                        <div class="d-flex" style="justify-content: space-between;">
+                            <h5 style="word-break: break-all; margin-right: 2rem;">{{ artist.account.username }}</h5>
+                            <p>{{ artist.num_followers }} followers</p>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <h2><a href="mailto:notakamihe@gmail.com">Contact</a></h2>
 {% endblock content %}

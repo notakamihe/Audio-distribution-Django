@@ -58,6 +58,7 @@
     <div class="mx-auto text-center">
         <h1 class="my-5">{{ collection.title }}</h1>
         <p class="my-5 col-8 mx-auto" style="text-align: justify; text-align-last: center;">{{ collection.description }}</p>
+        {% if user == artist.account %}
         <div style="margin-bottom: 5rem;">
             <a class="btn btn-warning" style="margin-right: 2rem;" href="{% url 'collection-edit' artist.account.username collection.slug %}">Edit</a>
             <button class="btn btn-danger btn-delete-collection">Delete</button>
@@ -70,11 +71,12 @@
                 style="margin-left: 2rem;">Publicize</button>
             {% endif %}
         </div>
+        {% endif %}
         <div class="col-9 mx-auto d-flex">
             <div class="d-flex" style="text-align: left; margin-right: 2rem; flex-direction: column;">
                 <div class="cover rounded mb-4" style="background-image: url('{{ collection.cover_url }}');"></div>
                 <div class="mb-5">
-                    <p class="mb-0"><small><strong>{{ collection.kind }} &bullet; {{ collection.release_date_word_form }}</strong></small></p>
+                    <p class="mb-0"><small><strong>{{ collection.kind }} &bullet; {{ collection.time_ago }}</strong></small></p>
                     <p><strong>{{ collection.length.minutes }} min {{ collection.length.seconds }} sec</strong></p>
                 </div>
                 <a href="{% url 'artist' artist.account.username %}" class="d-flex align-items-center text-decoration-none">
@@ -90,6 +92,7 @@
             <div class="col-9">
                 <div class="row px-4">
                     {% for i, song in songs %}
+                        {% if user == artist.account or song.is_public %}
                         <div class="d-flex col-lg-5 py-2 mx-3 my-1 rounded bg-transparent song-entry" 
                         style="border: 1px solid #3b8855; position: relative;">
                             <a href="{% url 'song' artist.account.username song.slug %}" 
@@ -100,10 +103,13 @@
                                 </div>
                                 <h6 class="mb-0" style="align-self: center; text-align: left;"><strong style="word-break: break-all;">{{ song.title }}</strong></h6>
                             </a>
+                            {% if user == artist.account %}
                             <button class="btn-remove-song" data-action="remove-song" data-slug="{{ song.slug }}">
                                 <img src="{% static 'images/minus.png' %}">
                             </button>
+                            {% endif %}
                         </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

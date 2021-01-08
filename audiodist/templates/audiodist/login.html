@@ -3,5 +3,21 @@
 {% block head_title %} Login {% endblock head_title %}
 
 {% block content %}
-    <h1>Log in</h1>
+    <h1 class="mb-5">Log in</h1>
+
+    {% for msg in messages %}
+        <p style="width: fit-content;" class="alert alert-danger mb-4"> <strong class="alert-danger">{{ msg }}</strong> </p>
+    {% endfor %}
+
+    <form action="" method="POST"> {% csrf_token %}
+        <div class="my-5">
+            <label for="email" class="col-1"><strong>Email</strong></label>
+            <input type="email" name="email" id="email" class="col-5 p-2">
+        </div>
+        <div class="my-5">
+            <label for="password" class="col-1"><strong>Password</strong></label>
+            <input type="password" name="password" id="password" class="p-2 col-3">
+        </div>
+        <input type="submit" value="Log in" class="btn btn-success">
+    </form>
 {% endblock content %}

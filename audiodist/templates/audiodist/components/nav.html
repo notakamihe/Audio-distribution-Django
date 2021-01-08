@@ -40,16 +40,16 @@
     </style>
 
     <h3><a href="{% url 'index' %}" class="text-decoration-none">Index.com</a></h1>
-    <form action=""> {% csrf_token %}
-        <input id="search" type="search" name="" id="">
-        <button class="btn p-2 mx-3" style="background-color: yellow;"><small>Search</small></button>
+    <form action="{% url 'search' %}" method="GET"> {% csrf_token %}
+        <input id="search" type="search" name="search">
+        <input class="btn p-2 mx-3" style="background-color: yellow;" type="submit" value="Search">
     </form>
-    {% if artist %}
+    {% if logged_in_artist %}
         <div class="d-flex align-items-center col-2" style="justify-content: space-between;">
             <a class="text-decoration-none text-dark" href="{% url 'create-collection' %}">Collection</a>
             <a class="text-decoration-none text-dark" href="{% url 'create-song' %}">Song</a>
-            <a href="{% url 'artist' artist.account.username %}" class="user-pfp" 
-            style="background-image: url('{{ artist.pfp_url }}');"></a>
+            <a href="{% url 'artist' logged_in_artist.account.username %}" class="user-pfp" 
+            style="background-image: url('{{ logged_in_artist.pfp_url }}');"></a>
         </div>
     {% else %}
         <div class="d-flex align-items-center" style="justify-content: space-evenly;">

@@ -23,8 +23,10 @@ from audiodist.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index_view, name='index'),
+    path('search/', search_view, name='search'),
     path('register/', register_view, name='register'),
     path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
     path('create/song/', song_create_view, name='create-song'),
     path('create/collection/', collection_create_view, name='create-collection'),
     path('<str:username>/', artist_view, name='artist'),

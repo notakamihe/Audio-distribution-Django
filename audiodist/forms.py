@@ -204,3 +204,26 @@ class CollectionForm (forms.ModelForm):
         if commit:
             collection.save()
         return collection
+
+
+class CommentForm (forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = [ 'content' ]
+
+    def __init__ (self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['content'].widget.attrs.update({ 'id': 'content', 'cols': '90', 'rows': '5', 
+        'style': 'border: 1px solid #3b8855; border-radius: 0.5rem;', 'class': 'p-2' })
+
+    def save (self, by, to, commit=True):
+        comment = super(CommentForm, self).save(commit=False)
+
+        comment.by = by
+        comment.to = to
+        comment.content = self.cleaned_data.get('content')
+
+        if commit:
+            comment.save()
+        return comment
