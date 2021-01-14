@@ -236,7 +236,7 @@ class Comment (models.Model):
 
     @property
     def time_word_form (self):
-        return self.time_commented.strftime('%B %d, %Y %-I:%M %p')
+        return self.time_commented.strftime('%B %d, %Y %I:%M %p')
 
 
 def slug_generator (sender, instance, *args, **kwargs):
