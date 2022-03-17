@@ -4,3 +4,5 @@ This is my second ever Django project done by myself. The project is an audio di
 Sidenote: I could not figure out how to do the song player controls you see at the very bottom of the website pages. Help for that is appreciated.
 
 Cloud/Heroku project link: http://firstherokunotak1.herokuapp.com/
+
+Link to Meanstream, the remastered version of this project: https://github.com/notakamihe/MEANStream
